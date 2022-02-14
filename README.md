@@ -8,14 +8,33 @@ End-to-end lightweight pose estimation method
 
 
 ## Download inference models
-```
+```bash
 cd ./pretrains
 ./download.sh
 ```
 
-## Inference demo on localhost
+## Inference E2Pose's demo on localhost
+```bash
+#inference video
+./inference.sh --src ./sample/$YOUR_MOVIE.mp4
+#inference image
+./inference.sh --src ./sample/$YOUR_IMAGE.jpg
 ```
-./inference.sh --movie ./mvsample/$YOUR_MOVIE.mp4
+
+## Inference [openPifPaf](https://openpifpaf.github.io/intro.html)'s demo on localhost
+```bash
+#inference video
+./inference_pifpaf.sh --src ./sample/$YOUR_MOVIE.mp4
+#inference image
+./inference_pifpaf.sh --src ./sample/$YOUR_IMAGE.jpg
+```
+
+## inference [mmpose](https://mmpose.readthedocs.io/en/latest/)'s demo on localhsot
+```bash
+#inference video
+./inference_mmpose.sh --src ./smaple/$YOUR_MOVIE.mp4
+#inference image
+./inference_mmpose.sh --src ./sample/$YOUR_IMAGE.jpg
 ```
 
 
