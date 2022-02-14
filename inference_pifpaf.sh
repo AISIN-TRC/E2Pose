@@ -36,4 +36,4 @@ docker run --rm --gpus $GPUS --net host --shm-size=4g\
   -e DISPLAY=$DISPLAY\
   -e TORCH_HOME=$TORCH_HOME\
   -v $(pwd):/work -w /work\
-  -it $TF_IMG python3 inference_pifpaf.py --src $SRC --dst $DST_DIR --ckpt $CKPT --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR --input_wh $INPUT_HW
+  -it $TF_IMG python3 inference_pifpaf.py --src "$SRC" --dst $DST_DIR --ckpt $CKPT --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR --input_wh $INPUT_HW

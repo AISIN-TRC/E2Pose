@@ -37,4 +37,4 @@ docker run --rm --gpus $GPUS --net host --shm-size=4g\
   -e TORCH_HOME=$TORCH_HOME\
   -e CUDA_LAUNCH_BLOCKING=1\
   -v $(pwd):/work -w /work\
-  -it $TF_IMG python3 inference_mmpose.py --src $SRC --dst $DST_DIR --det $MMDET --pose $MMPOSE --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR
+  -it $TF_IMG python3 inference_mmpose.py --src "$SRC" --dst $DST_DIR --det $MMDET --pose $MMPOSE --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR

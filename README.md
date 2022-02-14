@@ -16,25 +16,25 @@ cd ./pretrains
 ## Inference E2Pose's demo on localhost
 ```bash
 #inference video
-./inference.sh --src ./sample/$YOUR_MOVIE.mp4
+./inference.sh --src './sample/$YOUR_MOVIE.mp4'
 #inference image
-./inference.sh --src ./sample/$YOUR_IMAGE.jpg
+./inference.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
 
 ## Inference [openPifPaf](https://openpifpaf.github.io/intro.html)'s demo on localhost
 ```bash
 #inference video
-./inference_pifpaf.sh --src ./sample/$YOUR_MOVIE.mp4
+./inference_pifpaf.sh --src './sample/$YOUR_MOVIE.mp4'
 #inference image
-./inference_pifpaf.sh --src ./sample/$YOUR_IMAGE.jpg
+./inference_pifpaf.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
 
 ## inference [mmpose](https://mmpose.readthedocs.io/en/latest/)'s demo on localhsot
 ```bash
 #inference video
-./inference_mmpose.sh --src ./smaple/$YOUR_MOVIE.mp4
+./inference_mmpose.sh --src './smaple/$YOUR_MOVIE.mp4'
 #inference image
-./inference_mmpose.sh --src ./sample/$YOUR_IMAGE.jpg
+./inference_mmpose.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
 
 
