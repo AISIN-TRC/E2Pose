@@ -7,12 +7,6 @@ End-to-end lightweight pose estimation method
 [demo_inference.ipynb](http://colab.research.google.com/github/AISIN-TRC/E2Pose/blob/main/demo_inference.ipynb)
 
 
-## Download inference models
-```bash
-cd ./pretrains
-./download.sh
-```
-
 ## Inference E2Pose's demo on localhost
 ```bash
 #inference video
