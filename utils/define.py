@@ -2,7 +2,7 @@
 import numpy as np
 
 
-# 参考: https://github.com/openpifpaf/openpifpaf/blob/2837cadde2898428d9d36fa5af41c708b1af81ab/src/openpifpaf/plugins/posetrack/constants.py
+# Ref. https://github.com/openpifpaf/openpifpaf/blob/2837cadde2898428d9d36fa5af41c708b1af81ab/src/openpifpaf/plugins/posetrack/constants.py
 POSE_DATASETS ={
     'COCO': {
         'dir_train':'/dataset/COCO/train2017',

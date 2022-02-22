@@ -1,5 +1,4 @@
-# E2Pose
-End-to-end lightweight pose estimation method
+# E2Pose: Fully Convolutional Networks for End-to-End Multi-Person Pose Estimation
 
 ## Abstract
 
@@ -15,15 +14,17 @@ End-to-end lightweight pose estimation method
 ./inference.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
 
-## Inference [openPifPaf](https://openpifpaf.github.io/intro.html)'s demo on localhost
+# Benchmark code for comparing framerates
+## OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association [[arxiv](https://arxiv.org/abs/2103.02440)][[github](https://github.com/openpifpaf/openpifpaf)]
+### Inference openPifPaf's demo on localhost
 ```bash
 #inference video
 ./inference_pifpaf.sh --src './sample/$YOUR_MOVIE.mp4'
 #inference image
 ./inference_pifpaf.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
-
-## inference [mmpose](https://mmpose.readthedocs.io/en/latest/)'s demo on localhsot
+## OpenMMLab: Pose Estimation Toolbox and Benchmark [[github](https://github.com/open-mmlab/mmpose)]
+### inference mmpose's demo on localhsot
 ```bash
 #inference video
 ./inference_mmpose.sh --src './smaple/$YOUR_MOVIE.mp4'
@@ -32,5 +33,5 @@ End-to-end lightweight pose estimation method
 ```
 
 
-## Commercial License
+# Commercial License
 The open source license is in the [LICENSE](./LICENSE) file. This software is also available for licensing via the AISIN Corp. (https://www.aisin.com/).

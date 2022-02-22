@@ -13,6 +13,7 @@ class VariableDropout(tf.keras.layers.Dropout):
         base_config['rate'] = base_config['rate'] if not isinstance(base_config['rate'], tf.Variable) else float(base_config['rate'].numpy())
         return base_config
     
+# Ref. http://musyoku.github.io/2017/03/18/Deconvolution%E3%81%AE%E4%BB%A3%E3%82%8F%E3%82%8A%E3%81%ABPixel-Shuffler%E3%82%92%E4%BD%BF%E3%81%86/
 class PixelShuffler(tf.keras.layers.Layer):
     def __init__(self, scale, **kwargs):
         super().__init__(**kwargs)
