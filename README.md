@@ -5,6 +5,10 @@
 ## Demo on Google Colab
 [demo_inference.ipynb](http://colab.research.google.com/github/AISIN-TRC/E2Pose/blob/main/demo_inference.ipynb)
 
+## Download pre-train models
+```bash
+./pretrains/download.sh
+```
 
 ## Inference E2Pose's demo on localhost
 ```bash
