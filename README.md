@@ -3,7 +3,7 @@
 ## Abstract
 
 ## Demo on Google Colab
-[demo_inference.ipynb](http://colab.research.google.com/github/MasakazuTobeta/AisinE2Pose/blob/dev_init_colab/demo_inference.ipynb)
+[demo_inference.ipynb](http://colab.research.google.com/github/AISIN-TRC/E2Pose/blob/main/demo_inference.ipynb)
 
 ## Download pre-train models
 ```bash
