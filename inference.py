@@ -42,6 +42,7 @@ def parse_args():
     args.dev      = bool(args.dev)
     args.add_fps  = bool(args.add_fps)
     args.add_blur = bool(args.add_blur)
+    args.tftrt    = bool(args.tftrt)
     return args
 
 
@@ -110,25 +111,21 @@ class E2PoseInference_by_pb(E2PoseInference):
         return self.persistent_sess.run(self.tensor_output, feed_dict={self.tensor_image: x})
     
 
-#--------------
-# Main
-#--------------
-if __name__ == "__main__":
-    args = parse_args()
-    print(args)
-    
+def load_model(args):
     frozen_path  = args.model.parent / 'frozen_model.pb'
     trt_path     = args.model.parent / 'trt_model'
+    builded_trt  = args.model.parent / 'trt_build'
     h5_path      = args.model.parent / 'keras_model.hdf5'
     tf_path      = args.model.parent / 'saved_model'
     if args.tftrt:
         inference_model_path = trt_path
+        #inference_model_path = builded_trt
     else:
         inference_model_path = frozen_path
     if not inference_model_path.exists():
         if not frozen_path.is_file():
             model = tf.keras.models.load_model(str(args.model), compile=False, custom_objects={'E2PoseModel':E2PoseModel, 'VariableDropout':layers.VariableDropout, 'PixelShuffler':layers.PixelShuffler})
-            if str(args.model) not in [str(_path) for _path in [frozen_path,trt_path,h5_path,tf_path]]:
+            if str(args.model) not in [str(_path) for _path in [frozen_path,trt_path,h5_path,tf_path,builded_trt]]:
                 # add preprocess layer
                 fn_preprosess = E2PoseModel.get_preprosess(args.backbone)
                 tx_in  = tf.keras.Input(shape=model.inputs[0].shape[1:], batch_size=1, name='u8img')
@@ -141,11 +138,24 @@ if __name__ == "__main__":
             del model
             tf.keras.backend.clear_session()
         if args.tftrt:
+            if not tf_path.exists():
+                tf_util.convert_frozen_to_savedmodel(frozen_path, tf_path)
             tf_util.convert_savedmodel_to_trtmodel(tf_path, trt_path)
+            tf_util.convert_savedmodel_to_trtmodel(tf_path, builded_trt, build=True)
+        tf.keras.backend.clear_session()
+    model = E2PoseInference_by_trt(inference_model_path) if args.tftrt else E2PoseInference_by_pb(inference_model_path)
+    return model
+
+
+#--------------
+# Main
+#--------------
+if __name__ == "__main__":
+    args = parse_args()
+    print(args)
     
-    dataset      = POSE_DATASETS[args.dataset]
-    model        = E2PoseInference_by_trt(inference_model_path) if args.tftrt else E2PoseInference_by_pb(inference_model_path) 
-    painter      = draw.Painter(args.dataset)
+    model   = load_model(args)
+    painter = draw.Painter(args.dataset)
     
     with draw.seaquence_writer(args.dst, dev=args.dev) as writer:
         for ii, (src_path, raw, frame) in tqdm.tqdm(enumerate(draw.read_src(args.src, resize=model.inputs[0].shape[1:3]))):

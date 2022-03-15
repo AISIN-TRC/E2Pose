@@ -1,0 +1,19 @@
+FROM masakazutobeta/e2pose:nvcr-21.06-tf2-py3.v1
+
+MAINTAINER Tobeta <tobeta2012@gmail.com>
+RUN echo "now building..."
+CMD echo "now running..."
+
+RUN unlink /usr/bin/python
+RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+               libxkbcommon-x11-0 \
+               qttools5-dev-tools
+
+RUN pip3 install --upgrade pip
+RUN pip uninstall -y opencv-python
+RUN pip3 install pyqt5 opencv-python-headless
+
+RUN apt-get clean && \
+        rm -rf /var/lib/apt/lists/*
