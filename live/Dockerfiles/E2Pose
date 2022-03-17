@@ -1,19 +1,45 @@
-FROM masakazutobeta/e2pose:nvcr-21.06-tf2-py3.v1
+FROM nvcr.io/nvidia/tensorflow:21.08-tf2-py3
 
 MAINTAINER Tobeta <tobeta2012@gmail.com>
 RUN echo "now building..."
 CMD echo "now running..."
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends --fix-missing \
+                tmux \
+                texlive-xetex \
+                texlive-fonts-recommended \
+                texlive-latex-recommended \
+                pandoc libgl1-mesa-dev \
+                libglib2.0-0 \
+                libsm6 \
+                libxrender1 \
+                libxext6 \
+                libxkbcommon-x11-0 \
+                qttools5-dev-tools
+
 RUN unlink /usr/bin/python
 RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-               libxkbcommon-x11-0 \
-               qttools5-dev-tools
-
-RUN pip3 install --upgrade pip
 RUN pip uninstall -y opencv-python
-RUN pip3 install pyqt5 opencv-python-headless
+RUN python3 -m pip install --upgrade pip
+RUN pip install tqdm pillow scipy imagehash pandas matplotlib jupyter seaborn \
+                tensorflow-addons==0.13.0 tensorboard tensorboard-plugin-profile tensorboard_plugin_profile\
+                pydot pydotplus scikit-image PyQt5 "bokeh<2.0.0" opencv-python-headless imutils easydict keras tf2onnx
+RUN pip install --upgrade keras-flops PyMySQL cython setuptools easydict pycocotools
+
+RUN git clone https://github.com/mbaradad/munkres-tensorflow.git /munkres
+WORKDIR /munkres
+RUN TF_CFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_compile_flags()))') ) &&\
+        TF_LFLAGS=( $(python -c 'import tensorflow as tf; print(" ".join(tf.sysconfig.get_link_flags()))') ) &&\
+        g++ -std=c++11 -shared hungarian.cc -o hungarian.so -fPIC ${TF_CFLAGS[@]} ${TF_LFLAGS[@]} -O2
+RUN python -c "import tensorflow as tf; hungarian_module = tf.load_op_library('/munkres/hungarian.so'); print(hungarian_module.hungarian([[[1, 2], [3, 4]]]))"
+
+RUN mkdir /dataset
+RUN chmod 777 -R /dataset
+
+RUN pip install pycuda
 
 RUN apt-get clean && \
         rm -rf /var/lib/apt/lists/*

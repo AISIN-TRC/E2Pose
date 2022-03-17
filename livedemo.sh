@@ -21,7 +21,7 @@ fi
 if "${IS_JETSON}"; then
     TF_IMG=masakazutobeta/e2pose:nvcr-l4t-r32.6.1-tf2.5-py3.qt5
 else
-    TF_IMG=masakazutobeta/e2pose:nvcr-21.06-tf2-py3.qt5
+    TF_IMG=masakazutobeta/e2pose:nvcr-21.08-tf2-py3.qt5
 fi
 
 docker run --rm --gpus $GPUS --net host -e TF_FORCE_GPU_ALLOW_GROWTH=true\
