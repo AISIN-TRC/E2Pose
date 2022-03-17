@@ -18,6 +18,20 @@
 ./inference.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
 
+## E2Pose's live demo with camera device
+### Convert to TensorRT model (Running on Jetson devices takes a very long time)
+```bash
+./generate_trtmodel.sh
+```
+#### (Reference) Time required for conversion @ Jetson AGX Xavier
+    ResNet101/512x512 : tf2onnx = 108 minutes, onnx2trt = 
+
+### Launch the GUI
+```bash
+./livedemo.sh
+```
+
+
 # Benchmark code for comparing framerates
 ## OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association [[arxiv](https://arxiv.org/abs/2103.02440)][[github](https://github.com/openpifpaf/openpifpaf)]
 ### Inference openPifPaf's demo on localhost

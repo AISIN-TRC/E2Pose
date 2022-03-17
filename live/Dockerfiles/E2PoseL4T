@@ -1,0 +1,43 @@
+FROM nvcr.io/nvidia/l4t-tensorflow:r32.6.1-tf2.5-py3
+
+MAINTAINER Tobeta <tobeta2012@gmail.com>
+RUN echo "now building..."
+CMD echo "now running..."
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN unlink /usr/bin/python
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+RUN python3 -m pip install --upgrade pip
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends --fix-missing \
+               libgl1-mesa-dev \
+               libglib2.0-0 \
+               libsm6 \
+               libxrender1 \
+               libxext6 \
+               libxkbcommon-x11-0 \
+               qt5-default \
+               pyqt5-dev \
+               pyqt5-dev-tools \
+               python3-pyqt5 \
+               qttools5-dev-tools
+
+RUN python3 -m pip install --upgrade pip
+RUN pip uninstall -y opencv-python
+RUN pip install tqdm pandas opencv-python-headless easydict keras tf2onnx
+RUN pip install --upgrade keras-flops cython setuptools pycocotools setuptools
+
+WORKDIR /tmp
+RUN wget https://github.com/Qengineering/TensorFlow-Addons-Jetson-Nano/raw/main/tensorflow_addons-0.13.0.dev0-cp36-cp36m-linux_aarch64.whl &&\
+        pip install tensorflow_addons-0.13.0.dev0-cp36-cp36m-linux_aarch64.whl &&\
+        rm tensorflow_addons-0.13.0.dev0-cp36-cp36m-linux_aarch64.whl
+
+ENV PATH $PATH:/usr/src/tensorrt/bin
+
+RUN mkdir /dataset
+RUN chmod 777 -R /dataset
+
+RUN apt-get clean && \
+        rm -rf /var/lib/apt/lists/*
