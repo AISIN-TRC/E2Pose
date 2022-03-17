@@ -24,7 +24,7 @@
 ./generate_trtmodel.sh
 ```
 #### (Reference) Time required for conversion @ Jetson AGX Xavier
-    ResNet101/512x512 : tf2onnx = 108 minutes, onnx2trt = 
+    ResNet101/512x512 : tf2onnx = 108 minutes, onnx2trt = 20 minutes
 
 ### Launch the GUI
 ```bash
