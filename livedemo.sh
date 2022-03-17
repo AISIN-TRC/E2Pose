@@ -24,6 +24,24 @@ else
     TF_IMG=masakazutobeta/e2pose:nvcr-21.08-tf2-py3.qt5
 fi
 
+cmd="docker run --rm --gpus $GPUS --net host \
+        -e TF_FORCE_GPU_ALLOW_GROWTH=true \
+        -v /etc/localtime:/etc/localtime \
+        -v $HOME/.Xauthority:/root/.Xauthority \
+        -e DISPLAY=$DISPLAY \
+        -v $(pwd):/work \
+        -w /work "
+
+for device in $( ls /dev/video* ); do
+    cmd=$cmd" --device ${device}:${device}:mwr"
+done
+
+cmd=$cmd" -it $TF_IMG python3 ./live/demo.py"
+
+echo $cmd
+sh -c "$cmd"
+exit 0
+
 docker run --rm --gpus $GPUS --net host -e TF_FORCE_GPU_ALLOW_GROWTH=true\
   -v /etc/localtime:/etc/localtime -v $HOME/.Xauthority:/root/.Xauthority -e DISPLAY=$DISPLAY --device $CAMERA:/dev/video0:mwr \
   -v $(pwd):/work -w /work\
