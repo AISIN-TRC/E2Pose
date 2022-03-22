@@ -1,8 +1,8 @@
-matplotlib==3.3.4
-numpy==1.19.5
-nvidia-pyindex==1.0.9
-opencv-python-headless==4.5.5.64
-pycuda==2020.1
-PyQt5==5.15.6
-six==1.16.0
-tensorrt==8.0.1.6
+matplotlib
+numpy
+nvidia-pyindex
+opencv-python-headless
+pycuda
+PyQt5
+six
+tensorrt

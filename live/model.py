@@ -11,11 +11,14 @@ TRT_LOGGER = trt.Logger()
 from queue import Queue
 from PyQt5.QtCore import pyqtSignal, QThread
 
+from logging import getLogger
+logger = getLogger(__name__)
+
 # --- DEFINEs ---
 QT_PALETTE_UI_JSON = './live/config/pallete_pref.json'
-MODEL_PATH = {
-    'coco_res101_512': os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pretrains/COCO/ResNet101/512x512/model.trt'),
-}
+#MODEL_PATH = {
+#    'coco_res101_512': os.path.join(os.path.dirname(os.path.dirname(__file__)), 'pretrains/COCO/ResNet101/512x512/model.trt'),
+#}
 
 # Ref: https://github.com/sa-kei728/pytorch-YOLOv4/blob/master/demo_trt.py
 # Simple helper data class that's a little nicer to use than a 2-tuple.
@@ -32,7 +35,7 @@ class HostDeviceMem(object):
 
 def get_engine(engine_path):
     # If a serialized engine exists, use it instead of building an engine.
-    print("Reading engine from file {}".format(engine_path))
+    logger.info("Reading engine from file {}".format(engine_path))
     with open(engine_path, "rb") as f, trt.Runtime(TRT_LOGGER) as runtime:
         return runtime.deserialize_cuda_engine(f.read())
                 
@@ -55,12 +58,12 @@ def allocate_buffers(engine, batch_size):
         bindings.append(int(device_mem))
         # Append to the appropriate list.
         if engine.binding_is_input(binding):
-            print("Binding [" + str(binding) + "] : Input")
+            logger.info("Binding [" + str(binding) + "] : Input")
             if inputs is not None:
                 raise Exception('Not support yet')
             inputs = {'mem':HostDeviceMem(host_mem, device_mem), 'shape':dims, 'dtype':dtype }
         else:
-            print("Binding [" + str(binding) + "] : Output")
+            logger.info("Binding [" + str(binding) + "] : Output")
             outputs[str(binding)] = {'mem':HostDeviceMem(host_mem, device_mem), 'shape':dims, 'dtype':dtype }
     return inputs, outputs, bindings, stream
     
@@ -68,13 +71,11 @@ class E2PoseThread(QThread):
     sig_get_frame  = pyqtSignal(object)
     sig_ret_result = pyqtSignal(object)
 
-    def __init__(self, model_name='coco_res101_512', tftrt=False, src='./sample/2022-02-08-22-24-58.mp4'):
+    def __init__(self):
         super().__init__()
         self.th_pv      = 0.5
         self.raw_rgb    = Queue()
         self.model_path = None
-        self.model_name = None
-        self.set_model_path(model_name)
         
     def set_threshold(self, th):
         self.th_pv = th
@@ -103,21 +104,20 @@ class E2PoseThread(QThread):
     def predict_frame(self, raw_rgb):
         self.raw_rgb.put(raw_rgb)
     
-    def set_model_path(self, model_name=None):
-        if model_name is not None:
-            if pathlib.Path(str(model_name)).exists():
-                model_path = pathlib.Path(str(model_name))
-            else:
-                model_path = pathlib.Path(MODEL_PATH[model_name])
-            self.model_path = model_path
+    def set_model_path(self, model_path=None):
+        if pathlib.Path(str(model_path)).exists():
+            self.model_path = pathlib.Path(str(model_path))
     
     def stop(self):
         if self.isRunning():
-            print('Stop model')
+            logger.info('Stop model')
             self.raw_rgb.put(None)
 
     def run(self):
-        print('Start model')
+        if not pathlib.Path(str(self.model_path)).exists():
+            raise Exception('Model file is not found')
+            
+        logger.info('Start model')
         cuda.init()
         dev = cuda.Device(0)
         ctx = dev.make_context()
