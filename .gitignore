@@ -152,3 +152,6 @@ sample_out/
 
 # Development scripts
 dev_*
+
+# hidden file
+.*

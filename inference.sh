@@ -5,14 +5,15 @@ VERSION="1.0"
 parser_definition() {
     setup   REST help:usage -- "Usage: inference.sh [options]" ''
     msg -- 'Options:'
-    param  GPUS     -g --gpus      init:="all"                                            -- "Docker gpus option"
-    param  SRC         --src       init:='./sample/*'                                     -- "Path of the input image/movies. You can also specify using asterisks."
-    param  DST_DIR     --dst       init:='./sample_out/e2pose'                            -- "Output directory"
-    param  MODEL       --model     init:='./pretrains/COCO/ResNet101/512x512/saved_model' -- "Model path"
-    param  BACKBONE    --backbone  init:='ResNet101'                                      -- "Name of the Backbone"
-    flag   OUTPUT_DEV  --dev       on:true of:false  init:=false                          -- "Output information for development"
-    flag   ADD_FPS     --off_fps   on:false of:true  init:=true                           -- "Disable the FPS text display"
-    flag   ADD_BLUR    --add_blur  on:true of:false  init:=false                          -- "Add a blur mosaic"
+    param  GPUS     -g --gpus      init:="all"                                                -- "Docker gpus option"
+    param  SRC         --src       init:='./sample/*'                                         -- "Path of the input image/movies. You can also specify using asterisks."
+    param  DST_DIR     --dst       init:='./sample_out/e2pose'                                -- "Output directory"
+    param  MODEL       --model     init:='./pretrains/COCO/ResNet101/512x512/frozen_model.pb' -- "Model path"
+    param  BACKBONE    --backbone  init:='ResNet101'                                          -- "Name of the Backbone"
+    flag   TFTRT       --tftrt     on:true of:false  init:=false                              -- "Use the TF-TRT library"
+    flag   OUTPUT_DEV  --dev       on:true of:false  init:=false                              -- "Output information for development"
+    flag   ADD_FPS     --off_fps   on:false of:true  init:=true                               -- "Disable the FPS text display"
+    flag   ADD_BLUR    --add_blur  on:true of:false  init:=false                              -- "Add a blur mosaic"
     disp    :usage  -h --help
     disp    VERSION    --version
 }
@@ -33,5 +34,5 @@ fi
 docker run --rm --gpus $GPUS --net host -e TF_FORCE_GPU_ALLOW_GROWTH=true\
   -v /etc/localtime:/etc/localtime -v $HOME/.Xauthority:/root/.Xauthority -e DISPLAY=$DISPLAY\
   -v $(pwd):/work -w /work\
-  -it $TF_IMG python3 inference.py --src "$SRC" --dst $DST_DIR --model $MODEL --backbone $BACKBONE --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR
+  -it $TF_IMG python3 inference.py --src "$SRC" --dst $DST_DIR --model $MODEL --backbone $BACKBONE --dev $OUTPUT_DEV --add_fps $ADD_FPS --add_blur $ADD_BLUR --tftrt $TFTRT
   
