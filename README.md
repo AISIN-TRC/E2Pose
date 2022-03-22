@@ -55,11 +55,16 @@
 #### (Reference) Time required for conversion @ Jetson AGX Xavier
     ResNet101/512x512 : tf2onnx = 108 minutes, onnx2trt = 20 minutes
 
-### Launch the GUI
+### Launch the GUI @ docker
 ```bash
 ./livedemo.sh
 ```
 
+### Launch the GUI @ jetson
+```bash
+. venv/bin/activate
+python3 live/demo.py
+```
 
 # Benchmark code for comparing framerates
 ## OpenPifPaf: Composite Fields for Semantic Keypoint Detection and Spatio-Temporal Association [[arxiv](https://arxiv.org/abs/2103.02440)][[github](https://github.com/openpifpaf/openpifpaf)]
