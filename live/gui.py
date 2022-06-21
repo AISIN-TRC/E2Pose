@@ -4,10 +4,11 @@ import glob
 import sys
 import json
 import numpy as np
+import cv2
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGraphicsView, QFrame, QGraphicsScene, QDockWidget, QPushButton, QGraphicsItem, QComboBox, QSlider, QGroupBox, QFileDialog, QLabel
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGraphicsView, QFrame, QGraphicsScene, QDockWidget, QPushButton, QGraphicsItem, QComboBox, QSlider, QGroupBox, QFileDialog, QLabel, QCheckBox, QLineEdit
 from PyQt5.QtGui import QImage, QPixmap, QColor, QPen, QPainter
 
 sys.path += [os.path.dirname(__file__), os.path.dirname(os.path.dirname(__file__))]
@@ -63,7 +64,6 @@ class PoseGraph(QGraphicsItem):
         for limb in self.limbs:
             painter.setPen(limb['pen'])
             painter.drawLine(limb['x1'], limb['y1'], limb['x2'], limb['y2'])
-            
 
     def boundingRect(self):
         return QRectF(self.rect['top'], self.rect['left'], self.rect['bottom']-self.rect['top'], self.rect['right']-self.rect['left'])
@@ -71,9 +71,10 @@ class PoseGraph(QGraphicsItem):
 class E2PoseDock(QDockWidget):
     def __init__(self, *args, contextMenu=None, view=None, dataset='COCO', **kwargs):
         super().__init__(*args, **kwargs)
-        self.view  = view
-        self.scene = view.scene
-        self.annot = None
+        self.view    = view
+        self.scene   = view.scene
+        self.annot   = None
+        self.dst_mov = None
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self.setStyleSheet(DOCK_STYLE)
@@ -122,6 +123,11 @@ class E2PoseDock(QDockWidget):
     def change_line_width(self, val):
         [_pen.setWidth(val) for _pen in self.dataset['pen_joint']]
         [_pen.setWidth(val) for _pen in self.dataset['pen_limbs']]
+    
+    def change_bg_color(self, color_str):
+        color = QColor(color_str)
+        if color.isValid():
+            self.view.setBackgroundBrush(color)
 
     def create_draw_config_palette(self):
         group = QGroupBox('drawing settings:')
@@ -149,17 +155,37 @@ class E2PoseDock(QDockWidget):
         self.slider_linewidth.setValue(1)
         self.slider_linewidth.valueChanged.connect(self.change_line_width)
         hbox2.addWidget(self.slider_linewidth)
+
+        widget = QWidget()
+        hbox3  = QHBoxLayout()
+        widget.setLayout(hbox3)
+        vbox.addWidget(widget)
+        hbox3.addWidget(QLabel('background color:'))
+        self.bg_color_edit = QLineEdit("#000000")
+        self.bg_color_edit.textEdited.connect(self.change_bg_color)
+        hbox3.addWidget(self.bg_color_edit)
+
+        self.btn_hide_image = QCheckBox('Hide image')
+        self.btn_export_mp4 = QCheckBox('Export mp4')
+        self.btn_export_mp4.stateChanged.connect(self.export_mp4_changed)
+        vbox.addWidget(self.btn_hide_image)
+        vbox.addWidget(self.btn_export_mp4)
+
         self.layout.addWidget(group)
 
     def create_start_stop_button(self):
         self.btn_start = QPushButton('Start')
         self.btn_stop  = QPushButton('Stop')
+        self.btn_save  = QPushButton('Save')
         self.btn_start.setStyleSheet(BUTTON_STYLE)
         self.btn_stop.setStyleSheet(BUTTON_STYLE)
+        self.btn_save.setStyleSheet(BUTTON_STYLE)
         self.btn_start.clicked.connect(self.start_predict)
         self.btn_stop.clicked.connect(self.stop_predict)
-        self.layout.addWidget(self.btn_start)
+        self.btn_save.clicked.connect(self.export_image)
         self.layout.addWidget(self.btn_stop)
+        self.layout.addWidget(self.btn_start)
+        self.layout.addWidget(self.btn_save)
 
     def create_device_selector(self):
         group = QGroupBox('input device:')
@@ -209,14 +235,22 @@ class E2PoseDock(QDockWidget):
     def finish_model(self):
         self.btn_start.setEnabled(True)
         self.btn_stop.setEnabled(False)
+        self.btn_export_mp4.setChecked(0)
 
     def draw_humans(self, raw_rgb, humans):
         del self.annot
-        pix        = QPixmap.fromImage(QImage(raw_rgb, raw_rgb.shape[1], raw_rgb.shape[0], QImage.Format_RGB888))
+        h,w,c = raw_rgb.shape
+        alpha = np.ones_like(raw_rgb[:,:,0])*255
+        alpha = alpha.reshape((h,w,1))
+        if self.btn_hide_image.isChecked():
+            alpha = alpha * 0
+        raw_rgba   = np.concatenate([raw_rgb,alpha], axis=-1)
+        pix        = QPixmap.fromImage(QImage(raw_rgba, raw_rgba.shape[1], raw_rgba.shape[0], QImage.Format_RGBA8888))
         self.annot = [PoseGraph(human, dataset=self.dataset, name='human', circle_size=self.slider_circle.value()) for human in humans]
         [self.view.scene.removeItem(item) for item in self.view.scene.items() if item.toolTip()=='human']
         self.view.setPixmap(pix)
         [self.view.scene.addItem(item) for item in self.annot]
+        self.write_dst_mov()
 
     def draw_result(self, result):
         self.draw_humans(result['img'], result['humans'])
@@ -234,6 +268,50 @@ class E2PoseDock(QDockWidget):
         self.camera.wait()
         self.model.wait()
         self.finish_model()
+    
+    def export_image(self, *args, **kwargs):
+        fileName = QFileDialog.getSaveFileName(self, "Export image File", "./sample_out/untitled.png", "Images (*.png *.xpm *.jpg)")[0]
+        if len(fileName)>3:
+            logger.info(str('Export ') + str(fileName))
+            pixMap = self.view.grab()
+            pixMap.save(fileName)
+            
+    def write_dst_mov(self):
+        if self.dst_mov is not None:
+            cv_image = qimage_to_cv(self.view.grab().toImage())
+            if (self.dst_mov['video'] is None) or (self.dst_mov['wh'] is None):
+                self.dst_mov['wh'] = cv_image.shape[:2][::-1]
+                self.dst_mov['video'] = cv2.VideoWriter(self.dst_mov['path'],
+                                                        self.dst_mov['codec'],
+                                                        30, tuple(self.dst_mov['wh']))
+            cv_image = cv2.resize(cv_image[:,:,:3], self.dst_mov['wh'])
+            self.dst_mov['video'].write(cv_image)
+
+    def export_mp4_changed(self, state):
+        if state > 0:
+            fileName = QFileDialog.getSaveFileName(self, "Export movie File", "./sample_out/untitled.avi", "Movies (*.avi *.mp4)")[0]
+            if len(fileName)>3:
+                _ext = fileName.split('.')[-1].lower()
+                if _ext == 'wmv':
+                    _codec = 'H263'
+                elif _ext == 'mp4':
+                    _codec = 'MP4V'
+                else:
+                    _codec = 'XVID'
+
+                logger.info(str('Export ') + str(fileName))
+                self.dst_mov = {
+                    'video': None,
+                    'wh': None,
+                    'codec': cv2.VideoWriter_fourcc(*_codec),
+                    'path': fileName,
+                }
+        else:
+            if self.dst_mov is not None:
+                if self.dst_mov['video'] is not None:
+                    self.dst_mov['video'].release()
+                self.dst_mov = None
+
 
 class LiveView(QGraphicsView):
     def __init__(self, parent=None):
@@ -311,12 +389,22 @@ class MainWindow(QMainWindow):
             os.makedirs(os.path.dirname(QT_USER_CONFIG))
         with open(QT_USER_CONFIG, 'w') as f:
             json.dump(pref, f, indent=4)
+        if self.model.dst_mov is not None:
+            if self.model.dst_mov['video'] is not None:
+                self.model.dst_mov['video'].release()
+            self.model.dst_mov = None
     
     def getPosition(self):
         return self.geometry().x(), self.geometry().y(), self.geometry().width(), self.geometry().height()
     
     def setPosition(self, px, py, pw, ph):
         self.setGeometry(px, py, pw, ph)
+
+def qimage_to_cv(qimage):
+    w, h, d = qimage.size().width(), qimage.size().height(), qimage.depth()
+    bytes_ = qimage.bits().asstring(w * h * d // 8)
+    arr = np.frombuffer(bytes_, dtype=np.uint8).reshape((h, w, d // 8))
+    return arr
 
 #--------------
 # Main
