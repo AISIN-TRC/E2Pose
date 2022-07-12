@@ -1,6 +1,7 @@
 ## coding: UTF-8
 import os
 import glob
+from pickle import FRAME
 import sys
 import json
 import numpy as np
@@ -23,10 +24,19 @@ logger = getLogger(__name__)
 # --- DEFINEs ---
 QT_USER_CONFIG = './live/config/pallete_pref.json'
 
+from enum import IntEnum
+class DRAW_MODE(IntEnum):
+    OFF        = 0b0000
+    LIMB       = 0b0001
+    JOINT      = 0b0010
+    JOINT_FILL = 0b0100
+    NORMAL     = 0b0011
+
 class PoseGraph(QGraphicsItem):
-    def __init__(self, human, dataset, parent=None, name='human', circle_size=5.0, th=0.5):
+    def __init__(self, human, dataset, parent=None, name='human', circle_size=5.0, th=0.5, draw_mode=DRAW_MODE.NORMAL):
         super().__init__(parent)
         self.setToolTip(name)
+        self.draw_mode = draw_mode
         self.draw_skeleton(human, dataset, circle_size, th)
 
     def draw_skeleton(self, human, dataset, circle_size=5.0, th=0.5):
@@ -58,12 +68,22 @@ class PoseGraph(QGraphicsItem):
 
     def paint(self, painter, option, widget=None):
         painter.setRenderHint(QPainter.Antialiasing)
-        for joint in self.joints:
-            painter.setPen(joint['pen'])
-            painter.drawEllipse(joint['top'], joint['left'], joint['size'], joint['size'])
-        for limb in self.limbs:
-            painter.setPen(limb['pen'])
-            painter.drawLine(limb['x1'], limb['y1'], limb['x2'], limb['y2'])
+        if (self.draw_mode & (DRAW_MODE.JOINT | DRAW_MODE.JOINT_FILL))>0:
+            for joint in self.joints:
+                if (self.draw_mode & DRAW_MODE.JOINT)>0:
+                    painter.setPen(joint['pen'])
+                else:
+                    painter.setPen(QPen(QColor(0,0,0,0)))
+                if (self.draw_mode & DRAW_MODE.JOINT_FILL)>0:
+                    painter.setBrush(joint['pen'].color())
+                else:
+                    painter.setBrush(QColor(0,0,0,0))
+                painter.drawEllipse(joint['top'], joint['left'], joint['size'], joint['size'])
+        if (self.draw_mode & DRAW_MODE.LIMB)>0:
+            painter.setBrush(QColor(0,0,0,0))
+            for limb in self.limbs:
+                painter.setPen(limb['pen'])
+                painter.drawLine(limb['x1'], limb['y1'], limb['x2'], limb['y2'])
 
     def boundingRect(self):
         return QRectF(self.rect['top'], self.rect['left'], self.rect['bottom']-self.rect['top'], self.rect['right']-self.rect['left'])
@@ -71,10 +91,11 @@ class PoseGraph(QGraphicsItem):
 class E2PoseDock(QDockWidget):
     def __init__(self, *args, contextMenu=None, view=None, dataset='COCO', **kwargs):
         super().__init__(*args, **kwargs)
-        self.view    = view
-        self.scene   = view.scene
-        self.annot   = None
-        self.dst_mov = None
+        self.view      = view
+        self.scene     = view.scene
+        self.annot     = None
+        self.dst_mov   = None
+        self.draw_mode = DRAW_MODE.NORMAL
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
         self.setStyleSheet(DOCK_STYLE)
@@ -171,6 +192,19 @@ class E2PoseDock(QDockWidget):
         vbox.addWidget(self.btn_hide_image)
         vbox.addWidget(self.btn_export_mp4)
 
+        self.btn_joints_circle = QCheckBox('Joint')
+        self.btn_joints_fill   = QCheckBox('Joint fill')
+        self.btn_limbs         = QCheckBox('Limbs')
+        self.btn_joints_circle.stateChanged.connect(self.change_draw_mode)
+        self.btn_joints_fill.stateChanged.connect(self.change_draw_mode)
+        self.btn_limbs.stateChanged.connect(self.change_draw_mode)
+        self.btn_joints_circle.setChecked(True)
+        self.btn_joints_fill.setChecked(False)
+        self.btn_limbs.setChecked(True)
+        vbox.addWidget(self.btn_joints_circle)
+        vbox.addWidget(self.btn_joints_fill)
+        vbox.addWidget(self.btn_limbs)
+
         self.layout.addWidget(group)
 
     def create_start_stop_button(self):
@@ -246,7 +280,7 @@ class E2PoseDock(QDockWidget):
             alpha = alpha * 0
         raw_rgba   = np.concatenate([raw_rgb,alpha], axis=-1)
         pix        = QPixmap.fromImage(QImage(raw_rgba, raw_rgba.shape[1], raw_rgba.shape[0], QImage.Format_RGBA8888))
-        self.annot = [PoseGraph(human, dataset=self.dataset, name='human', circle_size=self.slider_circle.value()) for human in humans]
+        self.annot = [PoseGraph(human, dataset=self.dataset, name='human', circle_size=self.slider_circle.value(), draw_mode=self.draw_mode) for human in humans]
         [self.view.scene.removeItem(item) for item in self.view.scene.items() if item.toolTip()=='human']
         self.view.setPixmap(pix)
         [self.view.scene.addItem(item) for item in self.annot]
@@ -286,6 +320,15 @@ class E2PoseDock(QDockWidget):
                                                         30, tuple(self.dst_mov['wh']))
             cv_image = cv2.resize(cv_image[:,:,:3], self.dst_mov['wh'])
             self.dst_mov['video'].write(cv_image)
+
+    def change_draw_mode(self, state):
+        self.draw_mode = DRAW_MODE.OFF
+        if self.btn_joints_circle.isChecked():
+            self.draw_mode = self.draw_mode | DRAW_MODE.JOINT
+        if self.btn_joints_fill.isChecked():
+            self.draw_mode = self.draw_mode | DRAW_MODE.JOINT_FILL
+        if self.btn_limbs.isChecked():
+            self.draw_mode = self.draw_mode | DRAW_MODE.LIMB
 
     def export_mp4_changed(self, state):
         if state > 0:
