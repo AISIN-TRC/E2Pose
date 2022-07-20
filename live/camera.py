@@ -16,6 +16,10 @@ class CameraCapture(QThread):
             src = 0
         self.src  = src
         self.next = Queue()
+        self.hflip = False
+
+    def set_hflip(self, state):
+        self.hflip = state > 0
 
     def set_device(self, src):
         self.src  = src
@@ -36,6 +40,8 @@ class CameraCapture(QThread):
                 logger.info('Close capture')
                 break
             raw_rgb = cv2.cvtColor(raw, cv2.COLOR_BGR2RGB)
+            if self.hflip:
+                raw_rgb = cv2.flip(raw_rgb, 1)
             self.sig_frame.emit(raw_rgb)
             if not self.next.get():
                 break

@@ -205,6 +205,10 @@ class E2PoseDock(QDockWidget):
         vbox.addWidget(self.btn_joints_fill)
         vbox.addWidget(self.btn_limbs)
 
+        self.btn_hflip = QCheckBox('H. Flip')
+        self.btn_hflip.stateChanged.connect(self.change_hflip)
+        vbox.addWidget(self.btn_hflip)
+
         self.layout.addWidget(group)
 
     def create_start_stop_button(self):
@@ -320,6 +324,9 @@ class E2PoseDock(QDockWidget):
                                                         30, tuple(self.dst_mov['wh']))
             cv_image = cv2.resize(cv_image[:,:,:3], self.dst_mov['wh'])
             self.dst_mov['video'].write(cv_image)
+
+    def change_hflip(self, state):
+        self.camera.set_hflip(state)
 
     def change_draw_mode(self, state):
         self.draw_mode = DRAW_MODE.OFF
