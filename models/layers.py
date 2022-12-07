@@ -13,6 +13,25 @@ class VariableDropout(tf.keras.layers.Dropout):
         base_config['rate'] = base_config['rate'] if not isinstance(base_config['rate'], tf.Variable) else float(base_config['rate'].numpy())
         return base_config
     
+class CropOrPad(tf.keras.layers.Layer):
+    def __init__(self, target_height, target_width, **kwargs):
+        super().__init__(**kwargs)
+        self.target_height = int(target_height)
+        self.target_width  = int(target_width)
+    
+    def get_config(self):
+        config = {'target_height': self.target_height,
+                  'target_width': self.target_width}
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+    def call(self, x, training=None):
+        return tf.image.resize_with_crop_or_pad(x, self.target_height, self.target_width)
+
+    def compute_output_shape(self, input_shape):
+        B,H,W,C = input_shape
+        return (B,self.target_height,self.target_width,C)
+        
 # Ref. http://musyoku.github.io/2017/03/18/Deconvolution%E3%81%AE%E4%BB%A3%E3%82%8F%E3%82%8A%E3%81%ABPixel-Shuffler%E3%82%92%E4%BD%BF%E3%81%86/
 class PixelShuffler(tf.keras.layers.Layer):
     def __init__(self, scale, **kwargs):

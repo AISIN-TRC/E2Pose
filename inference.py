@@ -124,7 +124,7 @@ def load_model(args):
         inference_model_path = frozen_path
     if not inference_model_path.exists():
         if not frozen_path.is_file():
-            model = tf.keras.models.load_model(str(args.model), compile=False, custom_objects={'E2PoseModel':E2PoseModel, 'VariableDropout':layers.VariableDropout, 'PixelShuffler':layers.PixelShuffler})
+            model = tf.keras.models.load_model(str(args.model), compile=False, custom_objects={'E2PoseModel':E2PoseModel, 'VariableDropout':layers.VariableDropout, 'PixelShuffler':layers.PixelShuffler, 'CropOrPad':layers.CropOrPad})
             if str(args.model) not in [str(_path) for _path in [frozen_path,trt_path,h5_path,tf_path,builded_trt]]:
                 # add preprocess layer
                 fn_preprosess = E2PoseModel.get_preprosess(args.backbone)
