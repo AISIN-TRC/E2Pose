@@ -1,0 +1,1 @@
+{"input_name": "e2pose/inputimg", "output_names": ["E2Pose/E2Pose_pose_stage00_reshape_kvxy/concat:0", "E2Pose/E2Pose_pose_stage00_reshape_cxy/concat:0", "E2Pose/E2Pose_pose_stage00_reshape_pv/concat:0"]}
