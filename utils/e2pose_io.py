@@ -19,7 +19,7 @@ def check_is_image(path):
 def read_src(*args, resize=None):
     def _resize(frame):
         if (resize is not None):
-            return cv2.resize(frame, tuple(resize))
+            return cv2.resize(frame, tuple(resize[::-1]))
         else:
             return frame
     def _read_file(src):
