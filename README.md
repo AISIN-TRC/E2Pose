@@ -1,6 +1,7 @@
 # E2Pose: Fully Convolutional Networks for End-to-End Multi-Person Pose Estimation
 
 ## Abstract
+Highly accurate multi-person pose estimation at a high framerate is a fundamental problem in autonomous driving. Solving the problem could aid in preventing pedestrian-car accidents. The present study tackles this problem by proposing a new model composed of a feature pyramid and an original head to a general backbone. The original head is built using lightweight CNNs and directly estimates multi-person pose coordinates. This configuration avoids the complex post-processing and two-stage estimation adopted by other models and allows for a lightweight model. Our model can be trained end-to-end and performed in real-time on a resource-limited platform (low-cost edge device) during inference. Experimental results using the COCO and CrowdPose datasets showed that our model can achieve a higher framerate (approx. 20 frames/sec with NVIDIA Jetson AGX Xavier) than other state-of-the-art models while maintaining sufficient accuracy for practical use.
 
 ## Demo on Google Colab
 [demo_inference.ipynb](http://colab.research.google.com/github/AISIN-TRC/E2Pose/blob/main/demo_inference.ipynb)
@@ -42,6 +43,9 @@
 #inference image
 ./inference_mmpose.sh --src './sample/$YOUR_IMAGE.jpg'
 ```
+
+# Citation
+Masakazu Tobeta, Yoshihide Sawada, Ze Zheng, Sawa Takamuku, Naotake Natori. "[E2Pose: Fully Convolutional Networks for End-to-End Multi-Person Pose Estimation](https://ieeexplore.ieee.org/document/9981322)". 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS).
 
 
 # Commercial License
