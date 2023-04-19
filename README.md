@@ -47,6 +47,7 @@ Highly accurate multi-person pose estimation at a high framerate is a fundamenta
 # Citation
 Masakazu Tobeta, Yoshihide Sawada, Ze Zheng, Sawa Takamuku, Naotake Natori. "[E2Pose: Fully Convolutional Networks for End-to-End Multi-Person Pose Estimation](https://ieeexplore.ieee.org/document/9981322)". 2022 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS).
 
+戸部田雅一，鄭澤，高椋佐和，澤田好秀， "[高精度及び高フレームレートなEnd‐to‐End多人数姿勢推定](https://www.aisin.com/jp/technology/technicalreview/27/pdf/08.pdf)".
 
 # Commercial License
 The open source license is in the [LICENSE](./LICENSE) file. This software is also available for licensing via the AISIN Corp. (https://www.aisin.com/).
